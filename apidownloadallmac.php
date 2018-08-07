@@ -300,10 +300,10 @@
         $total_confirm += $confirm;
         $total_success += $success;
 
-				$count_rate += ($login > 0) ? round(($data / $login) * 100) : 0;
-				$count_rate2 += ($data > 0) ? round(($confirm / $data) * 100) : 0;
-				$count_rate3 += ($confirm > 0) ? round(($success / $confirm) * 100) : 0;
-				$count_rate4 += ($login > 0) ? round(($success / $login) * 100) : 0;
+		$count_rate += ($login > 0) ? round(($data / $login) * 100) : 0;
+		$count_rate2 += ($data > 0) ? round(($confirm / $data) * 100) : 0;
+		$count_rate3 += ($confirm > 0) ? round(($success / $confirm) * 100) : 0;
+		$count_rate4 += ($login > 0) ? round(($success / $login) * 100) : 0;
       }
 		}
 
@@ -479,15 +479,23 @@
 	  $phpexcel->getActiveSheet()->getStyle("C{$row}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
 	  $count_date = 0;
-	  $count_login = 0;
-		$count_htMac = 0;
-		$count_hMac = 0;
-		$count_0Mac = 0;
+
+	  $count_htMac = 0;
+	  $count_hMac = 0;
+	  $count_0Mac = 0;
+		$count_rate4 = 0;
+		$total_count_login =0;
 
 	  foreach ($arr_date as $date)
 	  {
-	    $count_date += (!isset($arr_login_lookup[$higo_router->id][date('Y-m-d', $date)])) ? 1 : 0;
+			$count_date += (isset($arr_login_lookup[$higo_router->id][date('Y-m-d', $date)])) ? 1 : 0;
 
+			// $login2 = (isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)])) ? 1 : 0;
+			// echo date('Y-m-d', $date). '========'.$login2. '<br/>';
+
+
+			$count_login = 0;
+			$data0Mac = 0;
 	    if (!isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)]))
 	    {
 	      $data = new stdClass();
@@ -510,22 +518,28 @@
 
 	    foreach ($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)] as $mac)
 	    {
-	      $login2 = (isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
-				$data0Mac = (!isset($arr_log_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
 
-	      $count_login += $login2;
-				$count_0Mac += $data0Mac;
+				$count_login += 1;
+				$data0Mac += (!isset($arr_log_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
 
-	      $total_login += $login2;
-				$total_0Mac += $data0Mac;
+
 
 	    }
 			$hMac = (isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
 			$count_hMac += $hMac;
 			$total_hMac += $hMac;
+			$total_count_login += $count_login;
+			// echo date('Y-m-d', $date). '========'. $count_login. '<br/>';
+
+			$count_rate4 += ($count_login != 0) ? round(($data0Mac / $count_login) * 100) : 0;
+
+			$count_0Mac += $data0Mac;
+
+			$total_0Mac += $data0Mac;
+
 	  }
 
-	  $phpexcel->getActiveSheet()->SetCellValue("F{$row}", $count_login);
+	  $phpexcel->getActiveSheet()->SetCellValue("F{$row}", $total_count_login);
 		$phpexcel->getActiveSheet()->SetCellValue("G{$row}", $count_htMac);
 		$phpexcel->getActiveSheet()->SetCellValue("H{$row}", $count_hMac);
 		$phpexcel->getActiveSheet()->SetCellValue("I{$row}", $count_0Mac);
@@ -544,10 +558,19 @@
 	    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
 	  ));
 
-		// $phpexcel->getActiveSheet()->SetCellValue("J{$row}", "");
-		// $phpexcel->getActiveSheet()->getStyle("J{$row}")->getNumberFormat()->applyFromArray(array(
-	  //   'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
-	  // ));
+		if ($count_login != '') {
+			$phpexcel->getActiveSheet()->SetCellValue("J{$row}", round($count_rate4 / $count_date) / 100);
+			$phpexcel->getActiveSheet()->getStyle("J{$row}")->getNumberFormat()->applyFromArray(array(
+		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+		  ));
+		}
+		else {
+			$phpexcel->getActiveSheet()->SetCellValue("J{$row}", 0);
+			$phpexcel->getActiveSheet()->getStyle("J{$row}")->getNumberFormat()->applyFromArray(array(
+		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+		  ));
+		}
+
 
 	  $phpexcel->getActiveSheet()->getStyle("L{$row}")->getNumberFormat()->applyFromArray(array(
 	    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
