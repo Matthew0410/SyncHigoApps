@@ -484,6 +484,7 @@
 	  $count_hMac = 0;
 	  $count_0Mac = 0;
 		$count_rate4 = 0;
+		$count_M0Mac = 0;
 		$total_count_login =0;
 
 	  foreach ($arr_date as $date)
@@ -496,6 +497,7 @@
 
 			$count_login = 0;
 			$data0Mac = 0;
+			$dataM0Mac = 0;
 	    if (!isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)]))
 	    {
 	      $data = new stdClass();
@@ -508,7 +510,7 @@
 	      $data->success = 0;
 	      $arr_data[$data->date][] = clone $data;
 
-				$htMac = (!isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
+				$htMac = (!isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)])) ? 1 : 0;
 				$count_htMac += $htMac;
 
 				$total_htMac += $htMac;
@@ -516,22 +518,29 @@
 	      continue;
 	    }
 
-	    foreach ($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)] as $mac)
+	    foreach ($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)] as $mac => $v)
 	    {
 
 				$count_login += 1;
 				$data0Mac += (!isset($arr_log_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
+				$data = (isset($arr_log_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? $arr_log_lookup[$higo_router->id][date('Y-m-d', $date)][$mac]->count_data : 0;
 
+				$dataM0Mac += ($count_login != '' && $data > 0) ? 1 : 0;
 
 
 	    }
+
 			$hMac = (isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
 			$count_hMac += $hMac;
 			$total_hMac += $hMac;
 			$total_count_login += $count_login;
+			$total_login += $count_login;
+			$count_M0Mac += $dataM0Mac;
+
 			// echo date('Y-m-d', $date). '========'. $count_login. '<br/>';
 
 			$count_rate4 += ($count_login != 0) ? round(($data0Mac / $count_login) * 100) : 0;
+
 
 			$count_0Mac += $data0Mac;
 
@@ -547,6 +556,7 @@
 		$phpexcel->getActiveSheet()->getStyle("J{$row}")->getNumberFormat()->applyFromArray(array(
 	    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
 	  ));
+		$phpexcel->getActiveSheet()->SetCellValue("K{$row}", $count_M0Mac);
 
 	  $row += 1;
 		$averageRow = $row - 1;
@@ -571,6 +581,13 @@
 		  ));
 		}
 
+		if ($count_login != '') {
+			$phpexcel->getActiveSheet()->SetCellValue("K{$row}", round($count_M0Mac / $count_date, 2));
+		}
+
+		else {
+			$phpexcel->getActiveSheet()->SetCellValue("K{$row}", 0);
+		}
 
 	  $phpexcel->getActiveSheet()->getStyle("L{$row}")->getNumberFormat()->applyFromArray(array(
 	    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
