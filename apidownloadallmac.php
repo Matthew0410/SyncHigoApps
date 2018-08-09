@@ -300,10 +300,10 @@
         $total_confirm += $confirm;
         $total_success += $success;
 
-		$count_rate += ($login > 0) ? round(($data / $login) * 100) : 0;
-		$count_rate2 += ($data > 0) ? round(($confirm / $data) * 100) : 0;
-		$count_rate3 += ($confirm > 0) ? round(($success / $confirm) * 100) : 0;
-		$count_rate4 += ($login > 0) ? round(($success / $login) * 100) : 0;
+				$count_rate += ($login > 0) ? round(($data / $login) * 100) : 0;
+				$count_rate2 += ($data > 0) ? round(($confirm / $data) * 100) : 0;
+				$count_rate3 += ($confirm > 0) ? round(($success / $confirm) * 100) : 0;
+				$count_rate4 += ($login > 0) ? round(($success / $login) * 100) : 0;
       }
 		}
 
@@ -487,13 +487,18 @@
 	  $count_0Mac = 0;
 		$count_rate4 = 0;
 		$count_rate5 = 0;
+		$count_rate6 = 0;
+		$count_rate7 = 0;
 		$count_M0Mac = 0;
 		$count_1Mac = 0;
+		$count_M1Mac = 0;
 		$total_count_login = 0;
 		$count_date_rate45 = 0;
+		$count_date_rate67 = 0;
 		$count_date_M0Mac = 0;
 		$count_date_rate5 = 0;
 		$count_date_1Mac = 0;
+		$count_date_M1Mac = 0;
 
 	  foreach ($arr_date as $date)
 	  {
@@ -510,6 +515,7 @@
 			$data0Mac = 0;
 			$dataM0Mac = 0;
 			$data1Mac = 0;
+			$dataM1Mac = 0;
 	    if (!isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)]))
 	    {
 	      $data = new stdClass();
@@ -539,13 +545,18 @@
 
 				$dataM0Mac += ($count_login != '' && $data > 0) ? 1 : 0;
 				$data1Mac += ($count_login != '' && $data == 1) ? 1 : 0;
+				$dataM1Mac += ($count_login != '' && $data > 1) ? 1 : 0;
 				$range_1Mac = ($data1Mac != 0) ? 1 : 0;
 				$range_M0Mac = ($dataM0Mac > 0) ? 1 : 0;
+				$range_M1Mac = ($dataM1Mac != 0) ? 1 : 0;
 				$range_rate45 = ($count_login != 0) ? 1 : 0;
+				$range_rate67 = ($dataM0Mac != 0 || $data1Mac != 0) ? 1 : 0;
 	    }
 			$count_date_rate45 += $range_rate45;
+			$count_date_rate67 += $range_rate67;
 			$count_date_1Mac += $range_1Mac;
 			$count_date_M0Mac += $range_M0Mac;
+			$count_date_M1Mac += $range_M1Mac;
 			$hMac = (isset($arr_mac_lookup[$higo_router->id][date('Y-m-d', $date)][$mac])) ? 1 : 0;
 			$count_hMac += $hMac;
 			$total_hMac += $hMac;
@@ -553,6 +564,7 @@
 			$total_login += $count_login;
 			$count_M0Mac += $dataM0Mac;
 			$count_1Mac += $data1Mac;
+			$count_M1Mac += $dataM1Mac;
 
 			$total_count_M0Mac += $dataM0Mac;
 			$total_1Mac += $data1Mac;
@@ -561,6 +573,8 @@
 
 			$count_rate4 += ($count_login != 0) ? round(($data0Mac / $count_login) * 100) : 0;
 			$count_rate5 += ($count_login != 0) ? round(($dataM0Mac / $count_login) * 100) : 0;
+			$count_rate6 += ($dataM0Mac != 0 || $data1Mac != 0) ? round(($data1Mac / $dataM0Mac) * 100) : 0;
+			$count_rate7 += ($dataM0Mac != 0 || $dataM1Mac != 0) ? round(($dataM1Mac / $dataM0Mac) * 100) : 0;
 
 			$count_0Mac += $data0Mac;
 
@@ -582,6 +596,15 @@
 	    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
 	  ));
 		$phpexcel->getActiveSheet()->SetCellValue("M{$row}", $count_1Mac);
+		$phpexcel->getActiveSheet()->SetCellValue("N{$row}", "=IF(K{$row} <> 0,M{$row}/K{$row},0)");
+		$phpexcel->getActiveSheet()->getStyle("N{$row}")->getNumberFormat()->applyFromArray(array(
+	    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+	  ));
+		$phpexcel->getActiveSheet()->setCellValue("O{$row}", $count_M1Mac);
+		$phpexcel->getActiveSheet()->SetCellValue("P{$row}", "=IF(K{$row} <> 0,O{$row}/K{$row},0)");
+		$phpexcel->getActiveSheet()->getStyle("P{$row}")->getNumberFormat()->applyFromArray(array(
+	    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+	  ));
 
 	  $row += 1;
 		$averageRow = $row - 1;
@@ -602,6 +625,14 @@
 			$phpexcel->getActiveSheet()->getStyle("L{$row}")->getNumberFormat()->applyFromArray(array(
 		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
 		  ));
+			$phpexcel->getActiveSheet()->SetCellValue("N{$row}", round($count_rate6 / $count_date_rate67) / 100);
+			$phpexcel->getActiveSheet()->getStyle("N{$row}")->getNumberFormat()->applyFromArray(array(
+		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+		  ));
+			$phpexcel->getActiveSheet()->SetCellValue("P{$row}", round($count_rate7 / $count_date_rate67) / 100);
+			$phpexcel->getActiveSheet()->getStyle("P{$row}")->getNumberFormat()->applyFromArray(array(
+		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+		  ));
 		}
 		else {
 			$phpexcel->getActiveSheet()->SetCellValue("J{$row}", 0);
@@ -610,6 +641,14 @@
 		  ));
 			$phpexcel->getActiveSheet()->SetCellValue("L{$row}", 0);
 			$phpexcel->getActiveSheet()->getStyle("L{$row}")->getNumberFormat()->applyFromArray(array(
+		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+		  ));
+			$phpexcel->getActiveSheet()->SetCellValue("N{$row}", 0);
+			$phpexcel->getActiveSheet()->getStyle("N{$row}")->getNumberFormat()->applyFromArray(array(
+		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+		  ));
+			$phpexcel->getActiveSheet()->SetCellValue("P{$row}", 0);
+			$phpexcel->getActiveSheet()->getStyle("P{$row}")->getNumberFormat()->applyFromArray(array(
 		    'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
 		  ));
 		}
@@ -637,6 +676,13 @@
 			$phpexcel->getActiveSheet()->SetCellValue("M{$row}", 0);
 		}
 
+		if($count_login != '') {
+			$phpexcel->getActiveSheet()->SetCellValue("O{$row}", round($count_M1Mac / $count_date_M1Mac, 2));
+		}
+		else {
+			$phpexcel->getActiveSheet()->SetCellValue("O{$row}", 0);
+		}
+
 	}
 
 	$row += 1;
@@ -646,6 +692,7 @@
 	$phpexcel->getActiveSheet()->SetCellValue("H{$row}", $total_hMac);
 	$phpexcel->getActiveSheet()->SetCellValue("I{$row}", $total_0Mac);
 	$phpexcel->getActiveSheet()->SetCellValue("K{$row}", $total_count_M0Mac);
+	$phpexcel->getActiveSheet()->SetCellValue("M{$row}", $total_1Mac);
 
 	/*============== End Unique Sheet ==============*/
 
